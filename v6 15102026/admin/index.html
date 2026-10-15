@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b0e17">
+<title>КиноФикация · Админка (/admin)</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠</text></svg>">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- ================= ВХОД ================= -->
+<div id="login" class="login-wrap">
+  <div class="login-card">
+    <div class="logo">🛠</div>
+    <h1>КиноФикация · Админка</h1>
+    <p class="sub">Панель управления ботом и приложением · открывается по адресу <code>/admin</code></p>
+    <label class="lbl">Адрес сайта (обычно не нужно менять)</label>
+    <input id="apiBase" type="text" placeholder="https://ваш-сайт.netlify.app" autocomplete="off">
+    <label class="lbl" id="pwdLbl">Пароль администратора</label>
+    <input id="pwd" type="password" placeholder="••••••••" autocomplete="current-password">
+    <div id="pwd2wrap" class="hidden">
+      <label class="lbl">Повторите — тот же пароль</label>
+      <input id="pwd2" type="password" placeholder="••••••••" autocomplete="new-password">
+    </div>
+    <button class="btn btn-primary" id="loginBtn">Войти</button>
+    <p class="msg" id="loginMsg"></p>
+    <p class="hint">Админка работает с того же сайта, поэтому адрес подставится сам.
+    Пароль создаётся один раз при первом входе и хранится на сервере в закрытом виде (соль + SHA-256).
+    После входа пароль не спрашивается 30 дней.</p>
+    <p class="hint">Забыли пароль? <a id="forgotLink" href="#" target="_blank" rel="noopener">Сбросьте его на странице /setup</a> — понадобится токен бота.</p>
+  </div>
+</div>
+
+<!-- ================= ОБОЛОЧКА ================= -->
+<div id="app" class="hidden">
+  <header class="top">
+    <div class="brand"><span class="logo-s">🛠</span><b>КиноФикация</b><span class="tag-admin">админка</span></div>
+    <div class="top-right">
+      <input id="globalQ" class="global-q" type="search" placeholder="🔎 Люди, пары, фильмы, подборки…" autocomplete="off" title="Глобальный поиск по всем данным">
+      <span class="site-pill" id="sitePill" title="Адрес основного сайта"></span>
+      <button class="icon-btn" id="refreshBtn" title="Обновить данные">⟳</button>
+      <button class="icon-btn" id="logoutBtn" title="Выйти">⎋</button>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="dash" class="on">📊 Дашборд</button>
+    <button data-tab="analytics">📈 Аналитика</button>
+    <button data-tab="broadcast">📢 Рассылка</button>
+    <button data-tab="users">👥 Пользователи</button>
+    <button data-tab="matches">💘 Мэтчи</button>
+    <button data-tab="catalog">🎞 Каталог</button>
+    <button data-tab="feedback">✍️ Обратная связь</button>
+    <button data-tab="settings">⚙️ Настройки</button>
+  </nav>
+
+  <main id="content" class="content"></main>
+</div>
+
+<div id="toast" class="hidden"></div>
+<div id="modal" class="hidden"><div class="modal-card"><button class="modal-x" id="modalX">✕</button><div id="modalBody"></div></div></div>
+
+<script src="admin.js"></script>
+</body>
+</html>

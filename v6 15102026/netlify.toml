@@ -1,0 +1,50 @@
+[build]
+  # Netlify Drop сборку не запускает — всё уже готово, сайт лежит в корне этой папки
+  command = ""
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Короткие адреса для удобства
+[[redirects]]
+  from = "/admin"
+  to = "/admin/"
+  status = 301
+
+[[redirects]]
+  from = "/api"
+  to = "/.netlify/functions/api"
+  status = 200
+
+[[redirects]]
+  from = "/setup"
+  to = "/.netlify/functions/setup"
+  status = 200
+
+[[redirects]]
+  from = "/bot"
+  to = "/.netlify/functions/bot"
+  status = 200
+
+# промо-страница
+[[redirects]]
+  from = "/landing"
+  to = "/landing.html"
+  status = 200
+
+# Каталог можно кэшировать на час
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+# Mini App открывается внутри Telegram (в т.ч. во фрейме на десктопе) — не блокируем
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer-when-downgrade"

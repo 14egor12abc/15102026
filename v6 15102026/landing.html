@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>КиноФикация — что смотрим сегодня?</title>
+<meta name="description" content="«Тиндер для фильмов» для пар и компаний: свайпайте карточки фильмов вдвоём, ловите мэтчи и больше никогда не спорьте, что посмотреть вечером.">
+<meta property="og:title" content="КиноФикация — что смотрим сегодня?">
+<meta property="og:description" content="Свайпайте фильмы вдвоём — мэтч, когда оба нажали ❤️. Бесплатно, в Telegram.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+<style>
+  :root{
+    --bg:#101216; --bg2:#161a21; --card:#1a1e26; --line:#272d39;
+    --txt:#eae8e3; --mut:#a8a399; --dim:#75705f;
+    --gold:#e3b34c; --gold-ink:#241c07;
+    --like:#5aa469; --no:#d05a68; --seen:#7d9fe0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--gold);text-decoration:none}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+  section{padding:64px 0}
+  h1,h2,h3{line-height:1.25;font-weight:800}
+  h2{font-size:30px;margin-bottom:10px}
+  .sub{color:var(--mut);font-size:16.5px;max-width:640px}
+  .btn{display:inline-block;border-radius:14px;padding:15px 28px;font-size:16px;font-weight:700;
+    transition:transform .15s,box-shadow .15s;border:0;cursor:pointer}
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:var(--gold);color:var(--gold-ink);box-shadow:0 8px 28px rgba(227,179,76,.25)}
+  .btn-primary:hover{box-shadow:0 10px 34px rgba(227,179,76,.4)}
+  .btn-ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+
+  /* шапка */
+  header{position:sticky;top:0;z-index:20;background:rgba(16,18,22,.86);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line)}
+  .head{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+  .brand span{font-size:24px}
+  .head .btn{padding:9px 18px;font-size:14px;border-radius:11px}
+
+  /* герой */
+  .hero{padding:84px 0 70px;text-align:center;position:relative;overflow:hidden}
+  .hero:before{content:'';position:absolute;inset:-40% -20% auto;height:520px;
+    background:radial-gradient(closest-side,rgba(227,179,76,.14),transparent);pointer-events:none}
+  .hero h1{font-size:44px;letter-spacing:-.5px}
+  .hero h1 em{font-style:normal;color:var(--gold)}
+  .hero .sub{margin:16px auto 0;font-size:18.5px}
+  .cta{display:flex;gap:12px;justify-content:center;margin-top:30px;flex-wrap:wrap}
+  .hero-note{margin-top:14px;color:var(--dim);font-size:13.5px}
+
+  /* «телефон» со свайпом */
+  .phone{width:270px;height:470px;margin:44px auto 0;border-radius:30px;border:1px solid var(--line);
+    background:linear-gradient(160deg,#232838,#14161d 60%);position:relative;
+    box-shadow:0 30px 80px rgba(0,0,0,.55);overflow:hidden}
+  .ph-card{position:absolute;inset:14px;border-radius:20px;overflow:hidden;
+    background:linear-gradient(150deg,#2a2140,#141a2c);display:flex;flex-direction:column;justify-content:flex-end;
+    padding:16px;animation:sway 5s ease-in-out infinite}
+  .ph-card:before{content:'🎬';position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);font-size:56px;opacity:.85}
+  .ph-card b{font-size:18px}
+  .ph-card small{color:#c9c5bb;font-size:12px}
+  .ph-stamp{position:absolute;top:18px;left:18px;border:3px solid var(--like);color:var(--like);
+    font-weight:900;font-size:15px;padding:4px 10px;border-radius:10px;transform:rotate(-12deg);opacity:.95}
+  @keyframes sway{0%,100%{transform:rotate(-1.4deg)}50%{transform:rotate(1.4deg)}}
+  .ph-acts{position:absolute;bottom:-6px;left:0;right:0;display:flex;justify-content:center;gap:14px}
+  .ph-act{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:19px;
+    background:#1d212b;border:1px solid var(--line)}
+  .ph-act.yes{border-color:var(--like)} .ph-act.no{border-color:var(--no)}
+
+  /* шаги */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-top:34px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px}
+  .step i{font-style:normal;font-size:30px;display:block;margin-bottom:10px}
+  .step b{display:block;font-size:16.5px;margin-bottom:6px}
+  .step p{color:var(--mut);font-size:14px}
+
+  /* фичи */
+  .feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:34px}
+  .feat{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:22px}
+  .feat i{font-style:normal;font-size:26px}
+  .feat b{display:block;margin:10px 0 6px;font-size:16.5px}
+  .feat p{color:var(--mut);font-size:14px}
+  .feat .tagline{display:inline-block;margin-top:10px;font-size:11.5px;font-weight:700;color:var(--gold);
+    border:1px solid rgba(227,179,76,.4);border-radius:999px;padding:2px 10px}
+
+  /* для кого */
+  .who{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:34px}
+  .who .feat b{font-size:18px}
+
+  /* faq */
+  .faq{max-width:720px;margin:30px auto 0}
+  details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:10px}
+  summary{cursor:pointer;font-weight:700;font-size:15.5px;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary:after{content:'+';float:right;color:var(--gold);font-size:20px;line-height:1}
+  details[open] summary:after{content:'–'}
+  details p{color:var(--mut);font-size:14.5px;margin-top:10px}
+
+  /* финал */
+  .final{text-align:center;background:
+    radial-gradient(closest-side at 50% 120%,rgba(227,179,76,.12),transparent),var(--bg2);
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  footer{padding:34px 0;color:var(--dim);font-size:13px;text-align:center}
+  footer a{color:var(--mut)}
+
+  @media (max-width:640px){
+    .hero h1{font-size:32px}
+    h2{font-size:24px}
+    section{padding:46px 0}
+    .phone{width:230px;height:400px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap head">
+    <div class="brand"><span>🎬</span> КиноФикация</div>
+    <a class="btn btn-primary" href="https://t.me/kino_fik_bot">Открыть в Telegram</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Хватит спорить,<br><em>что посмотрим сегодня</em></h1>
+    <p class="sub">«КиноФикация» — Tinder для фильмов внутри Telegram. Вы и ваша вторая половинка
+    свайпаете карточки фильмов и сериалов. Оба нажали ❤️ на одном — <b>мэтч</b>: фильм улетает
+    в общий список на вечер.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://t.me/kino_fik_bot">🎬 Начать бесплатно</a>
+      <a class="btn btn-ghost" href="/demo.html">🧪 Посмотреть демо</a>
+    </div>
+    <p class="hero-note">Без установки приложений — открывается прямо в Telegram. 485+ фильмов и сериалов с рейтингами КиноПоиска.</p>
+
+    <div class="phone" aria-hidden="true">
+      <div class="ph-card">
+        <div class="ph-stamp">НРАВИТСЯ</div>
+        <b>Начало</b>
+        <small>2010 · фантастика · ★ 8.7</small>
+      </div>
+      <div class="ph-acts">
+        <div class="ph-act no">✖</div>
+        <div class="ph-act">👁</div>
+        <div class="ph-act yes">❤</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Как это работает</h2>
+    <p class="sub">Три шага — и вечер спасён.</p>
+    <div class="steps">
+      <div class="step"><i>🤖</i><b>1. Откройте бота</b>
+        <p>Нажмите «Открыть приложение» — ничего скачивать не нужно, всё работает внутри Telegram.</p></div>
+      <div class="step"><i>💞</i><b>2. Свяжитесь с партнёром</b>
+        <p>Отправьте ссылку-приглашение или код. Партнёр примет заявку — и вы начнёте ловить мэтчи.</p></div>
+      <div class="step"><i>👉</i><b>3. Свайпайте</b>
+        <p>Вправо — «хочу посмотреть», влево — «мимо», вниз — «уже смотрел». Колода у каждого своя: ваш свайп не убирает карточку у партнёра.</p></div>
+      <div class="step"><i>💘</i><b>4. Ловите мэтчи</b>
+        <p>Оба лайкнули один фильм — мэтч! Бот сразу напишет вам обоим, а фильм попадёт в общий список «на вечер».</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <h2>Всё для киновечера</h2>
+    <div class="feats">
+      <div class="feat"><i>🃏</i><b>Своя колода у каждого</b>
+        <p>Листаете независимо: лайк одного не перелистывает карточку у другого. Мэтч случается, когда оба лайкнули один и тот же фильм — так честнее и интереснее.</p>
+        <span class="tagline">новое</span></div>
+      <div class="feat"><i>🎭</i><b>Колода под ваши интересы</b>
+        <p>При первом входе отмечаете любимые жанры — и колода сразу подстраивается под вас. Дальше она учится на ваших лайках.</p>
+        <span class="tagline">новое</span></div>
+      <div class="feat"><i>🎭</i><b>Группы до 8 человек</b>
+        <p>Семья или компания друзей: общая колода на всех, а мэтч случается, когда фильм лайкнули все участники.</p>
+        <span class="tagline">новое</span></div>
+      <div class="feat"><i>⚡</i><b>Обновления в реальном времени</b>
+        <p>Мэтчи, заявки и отметки «посмотрели» прилетают за пару секунд — перезапускать приложение не нужно.</p></div>
+      <div class="feat"><i>🍿</i><b>«Что посмотреть вдвоём»</b>
+        <p>Топ-3 непросмотренных мэтча на вечер и кнопка «планируем на сегодня» — партнёр получит уведомление в боте.</p></div>
+      <div class="feat"><i>📔</i><b>Дневник пары</b>
+        <p>Что посмотрели вместе, как оценил каждый и совпали ли вкусы. Ваша личная киностатистика отношений.</p></div>
+      <div class="feat"><i>🏆</i><b>Награды и серии</b>
+        <p>«Ночная сова», «Один вкус», «Киноманы 5 уровня» — свайпать вдвоём ещё и весело.</p></div>
+      <div class="feat"><i>📡</i><b>Работает без сети</b>
+        <p>Свайпайте в метро или на даче: голоса встанут в очередь и улетят на сервер, как только появится связь.</p>
+        <span class="tagline">новое</span></div>
+      <div class="feat"><i>📬</i><b>Итоги недели</b>
+        <p>Каждое воскресенье бот присылает дайджест: новые мэтчи, непросмотренное и предложение на вечер.</p>
+        <span class="tagline">новое</span></div>
+      <div class="feat"><i>🍿</i><b>Подборки</b>
+        <p>«Комедии на пятницу», «Пощекотать нервы», «Культовая классика» — готовые наборы под настроение.</p></div>
+      <div class="feat"><i>📺</i><b>Где посмотреть</b>
+        <p>В карточке фильма — кнопки КиноПоиск, Okko, Иви и Wink: выбрали кино — сразу видно, где его включить.</p>
+        <span class="tagline">новое</span></div>
+      <div class="feat"><i>🖼</i><b>Постер мэтча</b>
+        <p>Один тап — красивая картинка «Сегодня смотрим …» с постером и вашими именами: сохраните или отправьте в сторис.</p>
+        <span class="tagline">новое</span></div>
+      <div class="feat"><i>⭐</i><b>Свои подборки</b>
+        <p>«Наше с Настей», «На новогодние» — личные наборы фильмов прямо из карточки, работают как фильтр колоды.</p>
+        <span class="tagline">новое</span></div>
+      <div class="feat"><i>⬇️</i><b>Экспорт киносписка</b>
+        <p>Ваш общий список — одним файлом: CSV для Excel или красивый PDF, который приятно переслать друзьям.</p>
+        <span class="tagline">новое</span></div>
+      <div class="feat"><i>🔎</i><b>Бот в любом чате</b>
+        <p>Напишите @kino_fik_bot и название фильма прямо в переписке — карточка с рейтингом и кнопкой «в общий список».</p>
+        <span class="tagline">новое</span></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <h2>Для кого это</h2>
+    <div class="who">
+      <div class="feat"><i>💑</i><b>Для пар</b>
+        <p>Классика: двое свайпают каждый свою колоду, ловят мэтчи и ведут дневник просмотренного вместе. Больше никаких 40 минут «нууу не знаю» перед телевизором.</p></div>
+      <div class="feat"><i>👨‍👩‍👧‍👦</i><b>Для семьи</b>
+        <p>Группа на 3–8 человек: фильм попадёт в общий список, только если понравится всем — от бабушки до подростка.</p></div>
+      <div class="feat"><i>🧑‍🤝‍🧑</i><b>Для компании</b>
+        <p>Киноклуб с друзьями: создайте группу, скиньте код в чат — и выбирайте, что смотреть на встрече, заранее.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <h2>Частые вопросы</h2>
+    <div class="faq">
+      <details><summary>Это бесплатно?</summary>
+        <p>Да, полностью. Без подписок, без рекламы внутри приложения.</p></details>
+      <details><summary>Нужно ли что-то устанавливать?</summary>
+        <p>Нет. «КиноФикация» — мини-приложение внутри Telegram: открывается одной кнопкой на телефоне и на компьютере.</p></details>
+      <details><summary>Откуда берутся фильмы и рейтинги?</summary>
+        <p>В каталоге 485+ проверенных фильмов и сериалов. Рейтинги — КиноПоиск, постеры и описания — TMDB. Каталог пополняется новинками автоматически.</p></details>
+      <details><summary>Партнёр увидит, что я свайпнул в одиночку?</summary>
+        <p>Он увидит мэтч, только если вы оба лайкнете один и тот же фильм. Одиночные свайпы остаются вашей личной историей (в журнале свайпов).</p></details>
+      <details><summary>Что если наши вкусы совсем не совпадают?</summary>
+        <p>Тогда мэтчей будет меньше — и это тоже полезная информация. Во вкладке «Пара» видно процент совпадения вкусов, а «Дневник пары» показывает, где мнения разошлись.</p></details>
+      <details><summary>А если мы уже что-то смотрели?</summary>
+        <p>Свайп вниз (или кнопка 👁) помечает фильм как «уже смотрел» — он уходит из колоды и больше не мешает. Мэтчем это не считается.</p></details>
+      <details><summary>Можно ли добавить больше одного партнёра?</summary>
+        <p>Да: партнёров может быть несколько (мэтчи считаются с каждым отдельно), плюс группы до 8 человек — там колода общая на компанию.</p></details>
+      <details><summary>Партнёр увидит, что я лайкнул, а он — нет?</summary>
+        <p>Нет. Видны только взаимные лайки — то есть мэтчи. Колода и журнал свайпов у каждого свои, дизлайки друг друга не показываются.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap" style="text-align:center">
+    <h2>Сегодня вечером вы уже смотрите кино</h2>
+    <p class="sub" style="margin:10px auto 26px;text-align:center">Откройте бота, пригласите партнёра — и первый мэтч случится раньше, чем закончится спор «что посмотреть».</p>
+    <a class="btn btn-primary" href="https://t.me/kino_fik_bot">🎬 Открыть «КиноФикацию»</a>
+    <p class="hero-note" style="margin-top:14px">или <a href="/demo.html">попробуйте демо-версию</a> прямо в браузере, без Telegram</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    🎬 КиноФикация — сделано с любовью к кино. Рейтинги: <b>КиноПоиск</b>, постеры и описания: <b>TMDB</b>.<br>
+    <a href="https://t.me/kino_fik_bot">@kino_fik_bot</a> · <a href="/demo.html">демо</a> · <a href="/admin/">админка</a>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#131519">
+<title>КиноФикация — что смотрим сегодня?</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+
+<!-- ======= ШАПКА ======= -->
+<header id="topbar">
+  <div class="brand">
+    <span class="logo">🎬</span>
+    <div class="brand-txt">
+      <b>КиноФикация</b>
+      <small id="topHint">свайпай — выбирайте вместе</small>
+    </div>
+  </div>
+  <div class="top-right">
+    <span class="brand-mini" id="topVer"></span>
+  </div>
+</header>
+
+<!-- ======= ЭКРАН: КОЛОДА ======= -->
+<main id="screen-deck" class="screen active">
+  <div id="deckTop">
+    <span id="deckCount" class="dt-left">🎬</span>
+    <div id="progress"><span id="progressFill"></span></div>
+    <button class="icon-btn dt-filt" id="btnDeckFilters" title="Фильтры: настроение и длительность" aria-label="Фильтры">
+      <svg viewBox="0 0 24 24"><path d="M3 5h18v2.5l-7 7v5l-4 2v-7l-7-7z"/></svg>
+    </button>
+    <button class="icon-btn dt-undo" id="btnUndo" title="Отменить последний свайп" aria-label="Отменить свайп">
+      <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+    </button>
+  </div>
+  <!-- переключатель колоды: своя / общая колода группы -->
+  <div id="deckPartners" class="hidden"></div>
+  <div id="deckFilters" class="hidden">
+    <div class="df-row hidden" id="colRow"><span class="df-lbl">Подборка</span>
+      <div class="df-chips" id="colChips"></div></div>
+    <div class="df-row"><span class="df-lbl">Настроение</span>
+      <div class="df-chips" id="moodChips">
+        <button data-mood="any" class="on">Любое</button>
+        <button data-mood="light">Лёгкое</button>
+        <button data-mood="hard">Пожернее</button>
+      </div></div>
+    <div class="df-row"><span class="df-lbl">Длительность</span>
+      <div class="df-chips" id="durChips">
+        <button data-dur="any" class="on">Любая</button>
+        <button data-dur="short">До 1,5 часов</button>
+        <button data-dur="long">Длинное</button>
+      </div></div>
+    <div class="df-row"><span class="df-lbl">Порядок</span>
+      <div class="df-chips" id="persChips">
+        <button data-pers="on" class="on">🎯 Под мой вкус</button>
+        <button data-pers="off">Обычный</button>
+      </div></div>
+    <p class="df-note" id="persNote"></p>
+  </div>
+  <div id="deckWrap">
+    <div id="deck"></div>
+
+    <div id="emptyDeck" class="hidden">
+      <div class="empty-ico">🍿</div>
+      <h2>Всё просмотрено!</h2>
+      <p id="emptyText">В этой категории больше не осталось карточек.<br>Загляните во вкладку «Мэтчи» или смените фильтр.<br>Просмотренные ранее можно вернуть в журнале свайпов.</p>
+      <button class="btn btn-ghost" id="btnStartOver" style="max-width:280px">Оценить всё заново</button>
+    </div>
+  </div>
+
+  <div id="actions">
+    <button class="act act-no" id="btnNo" aria-label="Не смотрим">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+    <button class="act act-seen" id="btnSeen" aria-label="Уже смотрел" title="Уже смотрел — свайп вниз или клавиша ↓">
+      <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+    </button>
+    <button class="act act-info" id="btnInfo" aria-label="Подробнее">
+      <svg viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+    </button>
+    <button class="act act-yes" id="btnYes" aria-label="Хочу посмотреть">
+      <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </button>
+  </div>
+</main>
+
+<!-- ======= ЭКРАН: МЭТЧИ ======= -->
+<main id="screen-matches" class="screen">
+  <div class="scr-head">
+    <h1>Ваши мэтчи <span id="matchCount" class="pill">0</span></h1>
+    <p class="sub">Фильмы и сериалы, которые вы оба отметили</p>
+  </div>
+  <div class="mtools">
+    <input type="search" id="matchSearch" placeholder="Поиск по мэтчам…">
+    <select id="matchSort">
+      <option value="date">Сначала новые</option>
+      <option value="rating">По рейтингу</option>
+      <option value="score">По вашей оценке</option>
+      <option value="title">По алфавиту</option>
+    </select>
+  </div>
+  <div class="mtools mtools2">
+    <div id="matchFilter"></div>
+    <button class="btn btn-ghost btn-sm" id="btnRandom" title="Случайный непросмотренный мэтч">🎲 Случайный</button>
+    <button class="btn btn-ghost btn-sm" id="btnExport" title="Скачать общий список: CSV или PDF">⬇️ Экспорт</button>
+    <label class="chk"><input type="checkbox" id="matchWatched"> просмотренные</label>
+  </div>
+  <div id="matchScroll">
+    <div id="tonightBox" class="hidden"></div>
+    <div id="matchList"></div>
+    <div id="emptyMatches" class="empty hidden">
+      <div class="empty-ico">💔</div>
+      <h2>Пока пусто</h2>
+      <p>Свайпайте карточки вправо. Как только вы оба<br>лайкнете один и тот же фильм — он появится здесь,<br>а бот пришлёт уведомление.</p>
+      <button class="btn btn-primary" id="btnGoDeck">К карточкам</button>
+    </div>
+  </div>
+</main>
+
+<!-- ======= ЭКРАН: НАГРАДЫ ======= -->
+<main id="screen-badges" class="screen">
+  <div class="scr-head">
+    <h1>Награды</h1>
+    <p class="sub">Личные, парные и общий топ</p>
+  </div>
+  <div id="badgesBody" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 20px"></div>
+</main>
+
+<!-- ======= ЭКРАН: ЖУРНАЛ СВАЙПОВ ======= -->
+<main id="screen-diary" class="screen">
+  <div class="scr-head">
+    <h1>📔 Дневник пары</h1>
+    <p class="sub">Что вы посмотрели вместе и как каждому зашло</p>
+  </div>
+  <div id="diaryBody" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 20px"></div>
+</main>
+
+<main id="screen-profile" class="screen">
+  <div class="scr-head">
+    <h1>👤 Мой профиль</h1>
+    <p class="sub">Ваша статистика, вкус и активность</p>
+  </div>
+  <div id="profileBody" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 20px"></div>
+</main>
+
+<main id="screen-journal" class="screen">
+  <div class="scr-head">
+    <h1>Журнал свайпов</h1>
+    <p class="sub">Что вы лайкнули и пропустили; любой фильм можно вернуть в колоду</p>
+  </div>
+  <div id="journalList" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 20px"></div>
+</main>
+
+<!-- ======= ЭКРАН: ПАРА ======= -->
+<main id="screen-pair" class="screen">
+  <div class="scr-head">
+    <h1>Пара</h1>
+    <p class="sub">Свяжите аккаунты, чтобы ловить мэтчи</p>
+  </div>
+
+  <div class="pair-card" id="pairStatus"></div>
+
+  <div class="pair-card" id="findCard">
+    <h3>Найти человека</h3>
+    <p class="hint" style="margin:0 0 10px">Введите имя, @username или код — и отправьте заявку прямо отсюда.</p>
+    <input id="userSearch" type="text" placeholder="Имя, @username или код" autocomplete="off" spellcheck="false">
+    <div id="userSearchResults"></div>
+  </div>
+
+  <div class="pair-card" id="groupCard">
+    <h3>🎭 Группы 3+</h3>
+    <p class="hint" style="margin:0 0 10px">Компания до 8 человек: общая колода на всех, а мэтч случается,
+    когда фильм лайкнули <b>все</b> участники. Идеально для семьи или компании друзей.</p>
+    <div id="groupBox"></div>
+    <div class="row" style="margin-top:10px">
+      <input id="groupTitle" type="text" placeholder="Название группы (например: Семья)" maxlength="40" style="flex:1;min-width:140px">
+      <button class="btn btn-primary btn-sm" id="btnGroupCreate">Создать</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <input id="groupCode" type="text" placeholder="Код группы" maxlength="6" autocomplete="off" style="flex:1;min-width:140px">
+      <button class="btn btn-ghost btn-sm" id="btnGroupJoin">Войти по коду</button>
+    </div>
+  </div>
+
+  <div class="pair-card">
+    <h3>Добавить по коду</h3>
+    <div class="row">
+      <input id="partnerCode" type="text" inputmode="text" placeholder="Например: K7Q2" maxlength="6" autocomplete="off">
+      <button class="btn btn-primary" id="btnPair">Отправить заявку</button>
+    </div>
+    <p class="hint">Человек получит уведомление в боте и сможет принять или отклонить заявку.</p>
+    <p class="hint" id="pairMsg"></p>
+  </div>
+
+  <div class="pair-card">
+    <h3>Мой код</h3>
+    <div class="code-big" id="myCode">····</div>
+    <p class="hint">Назовите этот код партнёру — или отправьте ему ссылку.</p>
+    <button class="btn btn-ghost" id="btnShare">Отправить ссылку партнёру</button>
+  </div>
+
+  <div class="pair-card">
+    <h3>Мои интересы</h3>
+    <p class="hint" style="margin:0 0 10px">Под эти жанры подстраивается <b>ваша</b> колода. У партнёра — своя,
+    поэтому ваш выбор на него не влияет.</p>
+    <div class="df-chips" id="prefChips"></div>
+    <p class="hint" id="prefsNote" style="margin-top:8px"></p>
+    <button class="btn btn-ghost btn-sm" id="btnGenres" style="width:100%;margin-top:10px">🎭 Выбрать интересы на большом экране</button>
+  </div>
+
+  <div id="coupleBox"></div>
+
+  <div class="pair-card">
+    <h3>Мои инструменты</h3>
+    <div class="row">
+      <button class="btn btn-primary btn-sm" id="btnDiary" style="flex:1">📔 Дневник пары</button>
+      <button class="btn btn-primary btn-sm" id="btnProfile" style="flex:1">👤 Мой профиль</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn btn-ghost btn-sm" id="btnJournal" style="flex:1">Журнал свайпов</button>
+      <button class="btn btn-ghost btn-sm" id="btnStopList" style="flex:1">Стоп-лист</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn btn-ghost btn-sm" id="btnFeedback" style="flex:1">Обратная связь</button>
+      <button class="btn btn-ghost btn-sm" id="btnTour" style="flex:1">Пройти тур</button>
+    </div>
+    <!-- игры с партнёром: второй вход (первый — в «Моём профиле»).
+         Показ/скрытие — в renderPair() по флагу games и наличию партнёра -->
+    <div class="row hidden" id="rowPairGames" style="margin-top:8px">
+      <button class="btn btn-primary btn-sm" id="btnPairGames" style="flex:1">🎮 Игры с партнёром</button>
+    </div>
+    <div id="stopListBox" class="hidden" style="margin-top:10px"></div>
+  </div>
+
+  <div class="pair-card">
+    <h3>Вход с компьютера</h3>
+    <p class="hint" style="margin:0 0 10px">Откройте этот сайт в обычном браузере на компьютере
+    и введите код ниже — приложение заработает по-настоящему, с вашими голосами и мэтчами.</p>
+    <div class="row">
+      <div class="code-big" id="webCodeValue" style="flex:1;font-size:24px;letter-spacing:5px">······</div>
+      <button class="btn btn-primary" id="btnWebCode">Получить код</button>
+    </div>
+    <p class="hint" id="webCodeHint">Код одноразовый и живёт 5 минут.</p>
+  </div>
+
+  <div class="pair-card">
+    <h3>Профиль</h3>
+    <div id="profileBox" class="profile profile-link" role="button" tabindex="0"
+         aria-label="Открыть мой профиль" title="Открыть мой профиль"></div>
+  </div>
+
+  <div class="pair-card danger-zone">
+    <h3>Сброс</h3>
+    <p class="hint">Удалит все ваши оценки и мэтчи. Действие необратимо.</p>
+    <button class="btn btn-danger" id="btnReset">Сбросить мои данные</button>
+  </div>
+
+  <p class="credits">
+    Рейтинги — <b>КиноПоиск</b>. Постеры, описания и жанры — <b>TMDB</b>.<br>
+    Каталог: <span id="catalogInfo">—</span>
+  </p>
+</main>
+
+<!-- ======= НИЖНЕЕ МЕНЮ ======= -->
+<nav id="tabbar">
+  <button class="tab on" data-screen="deck">
+    <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm2 5h12v2H6zm3 5h6v2H9z"/></svg>
+    <span>Колода</span>
+  </button>
+  <button class="tab" data-screen="matches">
+    <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    <span>Мэтчи</span>
+    <i class="badge hidden" id="matchBadge"></i>
+  </button>
+  <button class="tab" data-screen="badges">
+    <svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.26L21.5 9.3l-4.75 4.4 1.15 6.8L12 17.3l-5.9 3.2 1.15-6.8L2.5 9.3l6.6-1.04z"/></svg>
+    <span>Награды</span>
+  </button>
+  <button class="tab" data-screen="pair">
+    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+    <span>Пара</span>
+  </button>
+</nav>
+
+<!-- ======= КАРТОЧКА: ПОДРОБНОСТИ ======= -->
+<div id="modal" class="hidden">
+  <div class="modal-sheet">
+    <div class="modal-grip"></div>
+    <button class="modal-close" id="modalClose">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ======= МЭТЧ! ======= -->
+<div id="matchOverlay" class="hidden">
+  <canvas id="confetti"></canvas>
+  <div class="match-box">
+    <div class="match-emoji" id="matchEmoji">💘</div>
+    <h1>ЭТО МЭТЧ!</h1>
+    <div class="match-people" id="matchPeople"></div>
+    <p class="match-sub" id="matchSub">Вы оба хотите это посмотреть</p>
+    <div class="match-poster"><img id="matchPoster" alt=""><div class="match-rate" id="matchRate"></div></div>
+    <h2 id="matchTitle"></h2>
+    <p class="match-meta" id="matchMeta"></p>
+    <div class="match-actions">
+      <button class="btn btn-primary" id="matchOk">Супер! 🍿</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= ПРИВЕТСТВИЕ ======= -->
+<div id="onboard" class="hidden">
+  <div class="ob-card">
+    <div class="ob-logo">🎬</div>
+    <h1>КиноФикация</h1>
+    <p class="ob-sub" id="obSub">Больше никаких «а что посмотрим?»</p>
+    <ul class="ob-list">
+      <li><span class="ob-ico right">👉</span><span><b>Свайп вправо</b> — хочу посмотреть</span></li>
+      <li><span class="ob-ico left">👈</span><span><b>Свайп влево</b> — не в этот раз</span></li>
+      <li><span class="ob-ico down">👁</span><span><b>Свайп вниз</b> — уже смотрел, уберите из колоды</span></li>
+      <li><span class="ob-ico solo">🎴</span><span><b>Колода у каждого своя</b> — ваш свайп не убирает карточку у партнёра</span></li>
+      <li><span class="ob-ico match">💘</span><span><b>Мэтч</b> — вы оба лайкнули один фильм, бот напишет вам</span></li>
+    </ul>
+    <button class="btn btn-primary btn-big" id="obStart">Поехали!</button>
+  </div>
+</div>
+
+<!-- ======= ИНТЕРЕСЫ: под них подстраивается колода ======= -->
+<div id="genreOverlay" class="hidden">
+  <div class="gp-card">
+    <div class="gp-top">
+      <div class="gp-emoji">🎭</div>
+      <h1>Что вам нравится?</h1>
+      <p class="gp-sub">Отметьте жанры — колода будет подстраиваться под вас.<br>Это видите только вы: на партнёра выбор не влияет.</p>
+    </div>
+    <div class="gp-grid" id="gpGrid"></div>
+    <div class="gp-foot">
+      <div class="gp-count"><b id="gpCount">0</b><span id="gpLimit">из 6</span></div>
+      <p class="hint" id="gpHint"></p>
+      <div class="gp-actions">
+        <button class="btn btn-ghost" id="gpSkip">Позже</button>
+        <button class="btn btn-primary" id="gpDone" disabled>Начать свайпать</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= ЗАГРУЗКА / ОШИБКА ======= -->
+<!-- Подложка под экраном загрузки. Отдельный элемент, а не ::before:
+     у загрузчика z-index создаёт собственный контекст наложения, поэтому
+     псевдоэлемент с z-index:-1 в некоторых WebView рисовался ПОД фоном
+     родителя и не выполнял свою задачу. Здесь все свойства «старые»
+     (top/right/bottom/left), без inset и без dv/sv-единиц — их понимает
+     любой WebView, включая старый Android-Telegram. -->
+<div id="loaderVeil" aria-hidden="true"></div>
+<div id="loader">
+  <!-- «скелет» карточки вместо спиннера: воспринимается как более быстрая загрузка -->
+  <div class="sk-logo">🍿</div>
+  <div class="sk-card">
+    <div class="sk-poster shimmer"></div>
+    <div class="sk-line w70 shimmer"></div>
+    <div class="sk-line w45 shimmer"></div>
+    <div class="sk-chips"><span class="shimmer"></span><span class="shimmer"></span><span class="shimmer"></span></div>
+  </div>
+  <span>Загружаем кино…</span>
+</div>
+<div id="toast" class="hidden"></div>
+<div id="demoBanner" class="hidden">Демо-режим: откройте через бота в Telegram, чтобы мэтчи работали по-настоящему</div>
+<div id="pvBanner" class="hidden">👁 Режим админа: вы смотрите приложение глазами пользователя <b id="pvName"></b>. Все действия сохраняются в его профиле. <button id="pvExit">Выйти из режима</button></div>
+
+<!-- ======= ОЦЕНКА «КАК ЗАШЛО» ======= -->
+<div id="rateBox" class="hidden">
+  <div class="rate-card">
+    <h2 id="rateTitle">Как зашло?</h2>
+    <div class="stars" id="rateStars">
+      <button data-s="1">⭐</button><button data-s="2">⭐</button><button data-s="3">⭐</button><button data-s="4">⭐</button><button data-s="5">⭐</button>
+    </div>
+    <p class="hint" id="rateHint" style="text-align:center">Оцените вместе от 1 до 5</p>
+    <div class="row" style="justify-content:center">
+      <button class="btn btn-ghost" id="rateSkip">Пропустить</button>
+      <button class="btn btn-primary" id="rateSave" disabled>Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= НОВАЯ НАГРАДА ======= -->
+<div id="badgeOverlay" class="hidden">
+  <div class="badge-box">
+    <div class="badge-ico" id="badgeIco">🏆</div>
+    <h1>Новая награда!</h1>
+    <h2 id="badgeTitle"></h2>
+    <p id="badgeDesc"></p>
+    <button class="btn btn-primary" id="badgeOk">Класс!</button>
+  </div>
+</div>
+
+<!-- ======= LIVE-СЕССИЯ «СВАЙПАЕМ ВМЕСТЕ» ======= -->
+<!-- ======= ТУР ПО ИНТЕРФЕЙСУ ======= -->
+<div id="tourOverlay" class="hidden">
+  <div class="tour-hole" id="tourHole"></div>
+  <div class="tour-tip" id="tourTip">
+    <b id="tourTitle"></b>
+    <p id="tourText"></p>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" id="tourSkip">Пропустить</button>
+      <button class="btn btn-primary btn-sm" id="tourNext">Далее</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= БОКОВАЯ ПАНЕЛЬ (планшет/десктоп) ======= -->
+<aside id="sidePanel" class="hidden">
+  <h3>Мэтчи</h3>
+  <div id="sideMatches"></div>
+  <h3 style="margin-top:14px">Партнёры</h3>
+  <div id="sidePartners"></div>
+</aside>
+
+<!-- ======= АНОНС «ЧТО НОВОГО» ======= -->
+<div id="annOverlay" class="hidden">
+  <div class="ann-card">
+    <div class="ann-ico">✨</div>
+    <h1 id="annTitle"></h1>
+    <div class="ann-body"><p id="annText"></p></div>
+    <div class="ann-more hidden" id="annMore" aria-hidden="true"><span>листайте вниз</span><i class="ann-chev">▾</i></div>
+    <button class="btn btn-primary" id="annOk">Понятно</button>
+  </div>
+</div>
+
+<!-- ======= ТЕХНИЧЕСКИЕ РАБОТЫ ======= -->
+<div id="maintOverlay" class="hidden">
+  <div class="maint-card">
+    <div class="maint-ico">🛠</div>
+    <h1>Технические работы</h1>
+    <p id="maintReason">Скоро вернёмся!</p>
+    <button class="btn btn-ghost" id="maintRetry">Проверить снова</button>
+  </div>
+</div>
+
+<!-- ======= НУЖНО ОБНОВИТЬ ПРИЛОЖЕНИЕ ======= -->
+<div id="updOverlay" class="hidden">
+  <div class="maint-card">
+    <div class="maint-ico">⬆️</div>
+    <h1>Пора обновиться</h1>
+    <p id="updText">Вышла новая версия «КиноФикации».</p>
+    <button class="btn btn-primary" id="updBtn">Обновить приложение</button>
+    <p class="hint" id="updVer" style="margin-top:10px"></p>
+  </div>
+</div>
+
+<!-- ======= СЕРВЕРНАЯ ЧАСТЬ НЕ ЗАДЕПЛОЕНА / БОТ НЕ НАСТРОЕН =======
+     Показывается, когда страница открылась, а /api отвечает не нашим JSON-ом
+     (Netlify отдаёт свой «Page not found», если перетащили не ту папку). -->
+<div id="noapiOverlay" class="hidden">
+  <div class="maint-card">
+    <div class="maint-ico" id="noapiIco">🛰</div>
+    <h1 id="noapiTitle">Сервер не отвечает</h1>
+    <p id="noapiText"></p>
+    <ol class="noapi-steps" id="noapiSteps"></ol>
+    <p class="hint noapi-path" id="noapiPath"></p>
+    <div class="noapi-actions">
+      <button class="btn btn-primary" id="noapiMain">Проверить снова</button>
+      <button class="btn btn-ghost" id="noapiDemo">Демо-режим</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= ОФЛАЙН: голоса ждут связи ======= -->
+<div id="oqChip" class="hidden" role="status"></div>
+
+<!-- ======= ВХОД С КОМПЬЮТЕРА ======= -->
+<div id="weblogin" class="hidden">
+  <div class="wl-card">
+    <div class="wl-logo">🎬</div>
+    <h1>КиноФикация</h1>
+    <p class="wl-sub">Вы открыли сайт в обычном браузере.<br>
+    Чтобы работать со своими голосами и мэтчами, войдите по коду:</p>
+    <ol class="wl-steps">
+      <li>Откройте приложение в Telegram</li>
+      <li>Вкладка «Пара» → «💻 Получить код»</li>
+      <li>Введите код здесь</li>
+    </ol>
+    <div id="webTgNote" class="hidden" style="margin:0 0 12px;padding:11px 13px;border-radius:13px;
+      background:rgba(227,179,76,.09);border:1px solid rgba(227,179,76,.35);color:#e8cf9a;font-size:12.5px;line-height:1.5">
+      Вы открыли сайт ссылкой внутри Telegram. Так приложение не получает вашу сессию.<br>
+      Вернитесь в бота и нажмите кнопку <b>«🎬 Открыть приложение»</b> под клавиатурой
+      или кнопку-меню слева от поля ввода — вход выполнится автоматически.
+    </div>
+    <input id="webCode" placeholder="Код, например K7Q2MA" maxlength="8" autocomplete="off">
+    <button class="btn btn-primary" id="webLoginBtn">Войти</button>
+    <p class="wl-or">— или —</p>
+    <button class="btn btn-ghost" id="webDemoBtn">Посмотреть в демо-режиме</button>
+    <p class="wl-msg" id="webLoginMsg"></p>
+    <div id="wlSrvNote" class="hidden"></div>
+  </div>
+</div>
+
+<!-- ======= ОПИСАНИЕ НАГРАДЫ: за что получена / как получить ======= -->
+<div id="badgeBox" class="hidden">
+  <div class="binfo-card">
+    <div class="binfo-ico" id="binfoIco">🏆</div>
+    <h2 id="binfoTitle">Награда</h2>
+    <div class="binfo-chip" id="binfoChip"></div>
+    <p class="binfo-why" id="binfoWhy"></p>
+    <div class="binfo-prog hidden" id="binfoProg"><span id="binfoProgFill" style="width:0"></span></div>
+    <p class="binfo-ptxt hint hidden" id="binfoPtxt"></p>
+    <button class="btn btn-primary" id="binfoOk">Закрыть</button>
+  </div>
+</div>
+
+<!-- ======= ДИАЛОГ ПОДТВЕРЖДЕНИЯ (вместо ненадёжного confirm() внутри Telegram) ======= -->
+<div id="confirmBox" class="hidden">
+  <div class="confirm-card">
+    <p id="confirmText"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="confirmNo">Отмена</button>
+      <button class="btn btn-danger" id="confirmYes">Да</button>
+    </div>
+  </div>
+</div>
+
+<script src="app-core.js"></script>
+<script src="app-ui.js"></script>
+<script>
+/* Экран загрузки обязан закрывать окно ЦЕЛИКОМ — на этом месте раньше
+   проглядывало приложение. Чистый CSS здесь ненадёжен:
+     • сборщик сворачивает top/right/bottom/left в inset:0, а его не
+       понимают старые WebView Telegram;
+     • 100vh внутри фрейма Telegram считается не так, как в браузере.
+   Поэтому размеры задаём в пикселях из JS. Скрипт стоит в самом конце body:
+   разметка загрузчика к этому моменту уже разобрана, так что fit() отрабатывает
+   немедленно — раньше, чем приложение успевает что-либо нарисовать. Дальше он
+   же вызывается на resize, на повороте экрана и на viewportChanged Telegram.
+   Скрипт автономный: не зависит ни от app-core.js, ни от CSS. */
+(function () {
+  function fit() {
+    var w = window.innerWidth || document.documentElement.clientWidth || 0;
+    var h = window.innerHeight || document.documentElement.clientHeight || 0;
+    var veil = document.getElementById('loaderVeil');
+    if (veil) {
+      veil.style.position = 'fixed';
+      veil.style.left = '0px'; veil.style.top = '0px';
+      veil.style.width = w + 'px'; veil.style.height = h + 'px';
+      veil.style.background = '#101318';
+      veil.style.zIndex = '109';
+      veil.style.pointerEvents = 'none';
+    }
+    var l = document.getElementById('loader');
+    if (!l) return;
+    l.style.position = 'fixed';
+    l.style.left = '0px'; l.style.top = '0px';
+    l.style.right = 'auto'; l.style.bottom = 'auto';
+    l.style.width = w + 'px';
+    l.style.height = h + 'px';
+    l.style.minWidth = w + 'px';
+    l.style.minHeight = h + 'px';
+  }
+  fit();
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 120); });
+  // Telegram умеет менять размер окна мини-приложения на лету
+  try {
+    var tgw = window.Telegram && window.Telegram.WebApp;
+    if (tgw && tgw.onEvent) tgw.onEvent('viewportChanged', function () { setTimeout(fit, 60); });
+    if (tgw && tgw.expand) tgw.expand();
+  } catch (e) {}
+  window.__kfFitLoader = fit;
+  document.addEventListener('DOMContentLoaded', fit);
+})();
+</script>
+</body>
+</html>
